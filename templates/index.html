@@ -1,6 +1,29 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<!-- Filtreleme ve Öğrenci Seçimi -->
+<div
+    class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+        <i class="fa-solid fa-filter text-indigo-600"></i>
+        <span class="text-sm font-semibold text-slate-700">Öğrenciye Göre Filtrele:</span>
+    </div>
+    <form method="GET" action="/" class="w-full md:w-auto flex items-center gap-2">
+        <select name="student" onchange="this.form.submit()"
+            class="w-full md:w-64 px-3 py-2 border border-slate-300 rounded-lg text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">-- Tüm Sınıf (Tüm Öğrenciler) --</option>
+            {% for s in students %}
+            <option value="{{ s.student_name }}" {% if selected_student==s.student_name %}selected{% endif %}>
+                {{ s.student_name }}
+            </option>
+            {% endfor %}
+        </select>
+        {% if selected_student %}
+        <a href="/" class="text-xs text-rose-600 hover:underline whitespace-nowrap">Temizle</a>
+        {% endif %}
+    </form>
+</div>
+
 <!-- İstatistik Kartları -->
 <div class="grid grid-cols-2 gap-4 mb-6">
     <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
@@ -8,7 +31,9 @@
             <i class="fa-solid fa-book"></i>
         </div>
         <div>
-            <p class="text-xs text-slate-500 font-medium">Toplam Kitap</p>
+            <p class="text-xs text-slate-500 font-medium">
+                {% if selected_student %}{{ selected_student }} - Kitap{% else %}Toplam Okunan Kitap{% endif %}
+            </p>
             <p class="text-2xl font-bold text-slate-800">{{ total_books }}</p>
         </div>
     </div>
@@ -17,7 +42,9 @@
             <i class="fa-solid fa-file-lines"></i>
         </div>
         <div>
-            <p class="text-xs text-slate-500 font-medium">Toplam Sayfa</p>
+            <p class="text-xs text-slate-500 font-medium">
+                {% if selected_student %}{{ selected_student }} - Sayfa{% else %}Toplam Okunan Sayfa{% endif %}
+            </p>
             <p class="text-2xl font-bold text-slate-800">{{ "{:,}".format(total_pages).replace(',', '.') }}</p>
         </div>
     </div>
@@ -26,7 +53,10 @@
 <!-- Kitap Listesi Tablosu -->
 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
     <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
-        <h2 class="font-bold text-slate-800 text-lg">📚 Okunan Kitaplar</h2>
+        <h2 class="font-bold text-slate-800 text-lg">
+            📚 {% if selected_student %}{{ selected_student }} Kitap Listesi{% else %}2-A Sınıfı Kitap Listesi{% endif
+            %}
+        </h2>
         <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">Salt Okunur</span>
     </div>
 
@@ -35,7 +65,7 @@
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase border-b border-slate-200">
-                    <th class="py-3 px-4">#</th>
+                    <th class="py-3 px-4">Öğrenci</th>
                     <th class="py-3 px-4">Kitabın Adı</th>
                     <th class="py-3 px-4">Yazarı</th>
                     <th class="py-3 px-4 text-center">Sayfa</th>
@@ -46,7 +76,9 @@
             <tbody class="divide-y divide-slate-100 text-sm">
                 {% for book in books %}
                 <tr class="hover:bg-slate-50/50 transition">
-                    <td class="py-3 px-4 text-slate-400 font-mono text-xs">{{ loop.revindex }}</td>
+                    <td class="py-3 px-4 font-bold text-indigo-700 whitespace-nowrap">
+                        <i class="fa-solid fa-user-graduate mr-1 text-slate-400"></i>{{ book.student_name }}
+                    </td>
                     <td class="py-3 px-4 font-semibold text-slate-800">{{ book.title }}</td>
                     <td class="py-3 px-4 text-slate-600">{{ book.author }}</td>
                     <td class="py-3 px-4 text-center font-medium text-slate-700">
