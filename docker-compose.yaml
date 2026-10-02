@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  book-tracker:
+    build: .
+    container_name: book_tracker_app
+    ports:
+      - "8080:5000"
+    environment:
+      - SECRET_KEY=kendi_gizli_anahtarini_yaz
+      - ADMIN_USER=veli
+      - ADMIN_PASS=veli123   # Buraya giriş yapmak istediğin varsayılan şifreyi yaz
+    volumes:
+      - ./data:/app/data     # Veritabanının silinmemesi (persist) için Docker volume
+    restart: always

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- İstatistik Kartları -->
+<div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+        <div class="p-3 bg-indigo-100 text-indigo-600 rounded-lg text-xl">
+            <i class="fa-solid fa-book"></i>
+        </div>
+        <div>
+            <p class="text-xs text-slate-500 font-medium">Toplam Kitap</p>
+            <p class="text-2xl font-bold text-slate-800">{{ total_books }}</p>
+        </div>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+        <div class="p-3 bg-emerald-100 text-emerald-600 rounded-lg text-xl">
+            <i class="fa-solid fa-file-lines"></i>
+        </div>
+        <div>
+            <p class="text-xs text-slate-500 font-medium">Toplam Sayfa</p>
+            <p class="text-2xl font-bold text-slate-800">{{ "{:,}".format(total_pages).replace(',', '.') }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Kitap Listesi Tablosu -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
+        <h2 class="font-bold text-slate-800 text-lg">📚 Okunan Kitaplar</h2>
+        <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">Salt Okunur</span>
+    </div>
+
+    {% if books %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-slate-50 text-slate-500 text-xs font-semibold uppercase border-b border-slate-200">
+                    <th class="py-3 px-4">#</th>
+                    <th class="py-3 px-4">Kitabın Adı</th>
+                    <th class="py-3 px-4">Yazarı</th>
+                    <th class="py-3 px-4 text-center">Sayfa</th>
+                    <th class="py-3 px-4 text-center">Veriliş</th>
+                    <th class="py-3 px-4 text-center">Teslim</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-sm">
+                {% for book in books %}
+                <tr class="hover:bg-slate-50/50 transition">
+                    <td class="py-3 px-4 text-slate-400 font-mono text-xs">{{ loop.revindex }}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-800">{{ book.title }}</td>
+                    <td class="py-3 px-4 text-slate-600">{{ book.author }}</td>
+                    <td class="py-3 px-4 text-center font-medium text-slate-700">
+                        <span class="bg-slate-100 px-2 py-0.5 rounded text-xs">{{ book.page_count }}</span>
+                    </td>
+                    <td class="py-3 px-4 text-center text-xs text-slate-500 whitespace-nowrap">{{ book.issue_date }}
+                    </td>
+                    <td class="py-3 px-4 text-center text-xs text-emerald-600 font-medium whitespace-nowrap">{{
+                        book.return_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-8 text-center text-slate-500">
+        <i class="fa-regular fa-folder-open text-3xl mb-2 text-slate-300"></i>
+        <p>Henüz listeye kitap eklenmemiş.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
