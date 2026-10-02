@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   book-tracker:
     build: .
@@ -7,9 +5,9 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - SECRET_KEY=kendi_gizli_anahtarini_yaz
-      - ADMIN_USER=veli
-      - ADMIN_PASS=veli123   # Buraya giriş yapmak istediğin varsayılan şifreyi yaz
+      SECRET_KEY: "change-this-to-a-long-random-secret"
+      ADMIN_USER: "veli"
+      ADMIN_PASS: "veli123"
     volumes:
-      - ./data:/app/data     # Veritabanının silinmemesi (persist) için Docker volume
+      - ./data:/app/data
     restart: always
