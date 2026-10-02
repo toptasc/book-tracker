@@ -9,21 +9,49 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'super-secret-key-change-this-in-prod')
 
-# Admin Kullanıcı Ayarları (Env üzerinden de verilebilir)
 ADMIN_USERNAME = os.environ.get('ADMIN_USER', 'veli')
-# Varsayılan şifre: veli123
 ADMIN_PASSWORD_HASH = generate_password_hash(os.environ.get('ADMIN_PASS', 'veli123'))
 
 DB_PATH = os.path.join(os.path.dirname(__file__), 'data', 'books.db')
 
+# Rütbe Hesaplama Mantığı
+RANKS = [
+    (0, "Acemi Okuyucu", "bg-slate-100 text-slate-700 border-slate-300", "fa-user-ninja"),
+    (5, "Onbaşı", "bg-blue-100 text-blue-800 border-blue-300", "fa-award"),
+    (10, "Çavuş", "bg-emerald-100 text-emerald-800 border-emerald-300", "fa-certificate"),
+    (15, "Teğmen", "bg-purple-100 text-purple-800 border-purple-300", "fa-star"),
+    (20, "Yüzbaşı", "bg-amber-100 text-amber-800 border-amber-300", "fa-medal"),
+    (25, "Binbaşı", "bg-orange-100 text-orange-800 border-orange-300", "fa-crown"),
+    (30, "Albay", "bg-rose-100 text-rose-800 border-rose-300", "fa-trophy"),
+]
+
+def get_rank(book_count):
+    current_rank = RANKS[0]
+    next_rank_count = RANKS[1][0]
+    
+    for i, rank in enumerate(RANKS):
+        if book_count >= rank[0]:
+            current_rank = rank
+            if i + 1 < len(RANKS):
+                next_rank_count = RANKS[i + 1][0]
+            else:
+                next_rank_count = None
+                
+    return {
+        "title": current_rank[1],
+        "badge_style": current_rank[2],
+        "icon": current_rank[3],
+        "next_count": next_rank_count
+    }
+
 def init_db():
-    """Veritabanını ve tabloyu oluşturur."""
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS books (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_name TEXT NOT NULL,
             title TEXT NOT NULL,
             author TEXT NOT NULL,
             page_count INTEGER NOT NULL,
@@ -49,20 +77,61 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Uygulama başlarken DB'yi hazırla
 init_db()
 
 @app.route('/')
 def index():
     conn = get_db_connection()
-    books = conn.execute('SELECT * FROM books ORDER BY id DESC').fetchall()
     
-    # İstatistikler
-    total_books = len(books)
-    total_pages = sum(book['page_count'] for book in books) if books else 0
+    # Tüm kitapları getir
+    all_books = conn.execute('SELECT * FROM books ORDER BY id DESC').fetchall()
+    
+    # Öğrencilere göre kitapları grupla
+    students_data = {}
+    total_class_books = len(all_books)
+    total_class_pages = sum(b['page_count'] for b in all_books) if all_books else 0
+    
+    for book in all_books:
+        name = book['student_name'].strip()
+        if name not in students_data:
+            students_data[name] = {
+                'name': name,
+                'books': [],
+                'total_pages': 0
+            }
+        students_data[name]['books'].append(book)
+        students_data[name]['total_pages'] += book['page_count']
+    
+    # Öğrencilerin rütbelerini hesapla
+    students_list = []
+    for name, data in students_data.items():
+        book_count = len(data['books'])
+        rank_info = get_rank(book_count)
+        
+        # Sonraki rütbeye ilerleme yüzdesi
+        progress = 100
+        if rank_info['next_count']:
+            progress = int((book_count / rank_info['next_count']) * 100)
+            
+        students_list.append({
+            'name': name,
+            'books': data['books'],
+            'book_count': book_count,
+            'total_pages': data['total_pages'],
+            'rank': rank_info,
+            'progress': progress
+        })
+    
+    # En çok kitap okuyana göre sırala
+    students_list.sort(key=lambda x: x['book_count'], reverse=True)
     
     conn.close()
-    return render_template('index.html', books=books, total_books=total_books, total_pages=total_pages)
+    return render_template(
+        'index.html', 
+        students=students_list, 
+        total_class_books=total_class_books, 
+        total_class_pages=total_class_pages
+    )
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -91,23 +160,27 @@ def logout():
 def admin():
     conn = get_db_connection()
     books = conn.execute('SELECT * FROM books ORDER BY id DESC').fetchall()
+    
+    # Açılır listede kolay seçim için mevcut öğrencilerin isimleri
+    existing_students = conn.execute('SELECT DISTINCT student_name FROM books ORDER BY student_name ASC').fetchall()
     conn.close()
-    return render_template('admin.html', books=books)
+    return render_template('admin.html', books=books, existing_students=existing_students)
 
 @app.route('/admin/add', methods=['POST'])
 @login_required
 def add_book():
+    student_name = request.form.get('student_name_custom') or request.form.get('student_name_select')
     title = request.form.get('title')
     author = request.form.get('author')
     page_count = request.form.get('page_count')
     issue_date = request.form.get('issue_date')
     return_date = request.form.get('return_date')
     
-    if title and author and page_count and issue_date and return_date:
+    if student_name and title and author and page_count and issue_date and return_date:
         conn = get_db_connection()
         conn.execute(
-            'INSERT INTO books (title, author, page_count, issue_date, return_date) VALUES (?, ?, ?, ?, ?)',
-            (title, author, int(page_count), issue_date, return_date)
+            'INSERT INTO books (student_name, title, author, page_count, issue_date, return_date) VALUES (?, ?, ?, ?, ?, ?)',
+            (student_name.strip().title(), title.strip(), author.strip(), int(page_count), issue_date, return_date)
         )
         conn.commit()
         conn.close()
