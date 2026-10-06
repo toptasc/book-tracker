@@ -1,1 +1,28 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>2-A Sınıfı Kitap Okuma Takibi</title><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"></head><body class="bg-slate-100 text-slate-800 min-h-screen"><header class="bg-indigo-600 text-white shadow"><div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center"><a href="/" class="font-bold text-xl">📚 2-A Kitap Okuma</a><div>{% if session.get('is_admin') %}<a href="{{url_for('admin')}}" class="bg-indigo-700 px-3 py-2 rounded mr-2 text-sm">Yönetim</a><a href="{{url_for('logout')}}" class="bg-red-500 px-3 py-2 rounded text-sm">Çıkış</a>{% else %}<a href="{{url_for('login')}}" class="bg-indigo-500 px-3 py-2 rounded text-sm">Veli Girişi</a>{% endif %}</div></div></header><main class="max-w-5xl mx-auto px-4 py-6">{% with messages=get_flashed_messages(with_categories=true) %}{% for c,m in messages %}<div class="mb-4 p-3 rounded bg-white border">{{m}}</div>{% endfor %}{% endwith %}{% block content %}{% endblock %}</main><footer class="text-center text-xs text-slate-500 py-6">Sadece yetkili veli düzenleyebilir.</footer></body></html>
+<!doctype html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>2-D Sınıfı Kitap Okuma Takibi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+    <header class="bg-indigo-600 text-white shadow">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center"><a href="/"
+                class="font-bold text-xl">📚 2-D Kitap Okuma</a>
+            <div>{% if session.get('is_admin') %}<a href="{{url_for('admin')}}"
+                    class="bg-indigo-700 px-3 py-2 rounded mr-2 text-sm">Yönetim</a><a href="{{url_for('logout')}}"
+                    class="bg-red-500 px-3 py-2 rounded text-sm">Çıkış</a>{% else %}<a href="{{url_for('login')}}"
+                    class="bg-indigo-500 px-3 py-2 rounded text-sm">Veli Girişi</a>{% endif %}</div>
+        </div>
+    </header>
+    <main class="max-w-5xl mx-auto px-4 py-6">{% with messages=get_flashed_messages(with_categories=true) %}{% for c,m
+        in messages %}<div class="mb-4 p-3 rounded bg-white border">{{m}}</div>{% endfor %}{% endwith %}{% block content
+        %}{% endblock %}</main>
+    <footer class="text-center text-xs text-slate-500 py-6">Sadece yetkili veli düzenleyebilir.</footer>
+</body>
+
+</html>
